@@ -3,3 +3,8 @@ B-Number:	B00978366
 Email:		mponnad1@binghamton.edu
 
 #Add text here as needed.
+To run the parser, give input as below
+$ ./decls.sh
+# copy paste the input here
+# press enter
+# press ctrl+D
