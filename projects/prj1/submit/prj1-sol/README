@@ -2,9 +2,16 @@ Name:		Murali Venkateswara Gopi Krishna Ponnada
 B-Number:	B00978366
 Email:		mponnad1@binghamton.edu
 
-#Add text here as needed.
-To run the parser, give input as below
+
+To run the parser, 
+
+Option1:
+give input as below
 $ ./decls.sh
 # copy paste the input here
 # press enter
 # press ctrl+D
+
+Option2:
+give input as below to run all test cases
+~/PL/cs571/projects/prj1/extras/do-tests.sh decls.sh

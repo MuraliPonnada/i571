@@ -2,12 +2,12 @@ import re
 import sys
 import json
 
-def parse(input_str):
-    tokens = re.findall(r'\b\w+\b|[{};:^#]', input_str)
+def parse(inp):
+    tokens = re.findall(r'\b\w+\b|[{};:^#]', inp)
     pos = 0
     result = []
     i=0
-    print(tokens)
+    # print(tokens)
 
     def parse_declaration():
         nonlocal pos
@@ -39,7 +39,7 @@ def parse(input_str):
         if var_name in ['number', 'string', 'record']:
                 sys.exit("Error: expecting 'id' but got '"+var_name+"'")
         pos += 1
-        print(pos, tokens[pos], tokens[pos-1])
+        # print(pos, tokens[pos], tokens[pos-1])
         if tokens[pos] == ':':
             pos += 1
             var_type = parse_type()
@@ -115,8 +115,8 @@ d=[]
 # print("line 89-->", rep1)
 
 b = sys.stdin.readlines()
-print("line 108")
-print(b)
+# print("line 108")
+# print(b)
 for i in range(0,len(b)):
     if "\n" in b[i]:
         b[i]=b[i].split('\n')[0]
@@ -126,12 +126,13 @@ for i in range(0,len(b)):
     b[i]=f[0]
     if '.' in b[i]:
         sys.exit("Error: Bad character")
-print("line 113")
-print(b)
+# print("line 113")
+# print(b)
 # if '.' in b:
 #     sys.exit("Error: Bad character")
 res1=parse(str(b))
-print(res1)
+# print(json.dumps(res1,indent=4))
+sys.stdout.write(json.dumps(res1,indent=4))
 
 # file1 = open("52-missing-colon.err.txt","r+")
 # a=file1.readlines()
