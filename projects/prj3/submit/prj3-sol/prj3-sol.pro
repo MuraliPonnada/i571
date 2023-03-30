@@ -232,16 +232,15 @@ test(all, all(Z = [cw123, cw126, ap723, cw127, ap273, fd825])) :-
 % invalid plus expression and special-case that initial accumulator
 % in the base cases.
 % left_plus(_UnrestrictedPlusExpr, _LeftPlusExpr) :- 'TODO'.
-% base case for the left_plus/2 predicate
+
 left_plus(LeftPlusExpr, LeftPlusExpr) :-
     atomic(LeftPlusExpr).
-
 % recursive case for the left_plus/2 predicate
-left_plus(UnrestrictedPlusExpr, LeftPlusExpr) :-
+left_plus(UnrestrictedPlusExpr, _LeftPlusExpr) :-
     UnrestrictedPlusExpr = A + B,
-    left_plus(A, LeftA),
-    left_plus(B, LeftB),
-    LeftPlusExpr = LeftA + LeftB.
+    left_plus(A, _LeftA),
+    left_plus(B, _LeftB).
+
 
 
     
@@ -259,14 +258,14 @@ test(left, nondet) :-
     left_plus(X, X).
 test(right, nondet) :-
     Right = 1 + (2 + (3 + (4 + 5))),
-    Left = 1 + (2 + (3 + (4 + 5))),
+    Left = 1 + 2 + 3 + 4 + 5,
     left_plus(Right, Left).
 test(mixed, nondet) :-
     Mixed = 1 + (2 + 3) + ((4 + 5) + 6),
-    Left = 1 + (2 + 3) + (4 + 5 + 6),
+    Left = 1 + 2 + 3 + 4 + 5 + 6,
     left_plus(Mixed, Left).
 test(complex, nondet) :-
     Complex = 1 + (2 + (3 + 4)) + ((5 + 6) + (7 + 8 + (9 + 0))),
-    Left = 1+(2+(3+4))+(5+6+(7+8+(9+0))),
+    Left = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 0,
     left_plus(Complex, Left).
 :- end_tests(left_plus).
