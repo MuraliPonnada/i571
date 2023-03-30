@@ -1,4 +1,4 @@
-%-*- mode: prolog; -*-
+%-- mode: prolog; --
 
 
 % An order-item is represented using the structure
@@ -38,9 +38,13 @@ food_items([Item6]) :-
 % Total with the total for the order, i.e. sum n-units*unit-price over
 % all items.
 % Restriction: must be recursive, but may not define any auxiliary procedures.
-items_total1(_Items, _Total) :- 'TODO'.
+items_total1([], 0).
+items_total1([order_item(_, _, NUnits, UnitPrice) | Rest], Total) :-
+    items_total1(Rest, RestTotal),
+    Total is RestTotal + NUnits * UnitPrice.
 
-:-begin_tests(items_total1, [blocked(todo)]).
+
+:-begin_tests(items_total1).
 test(empty) :-
     items_total1([], 0).
 test(single) :-
@@ -69,10 +73,18 @@ test(all) :-
 %
 % Hint: Implement as a wrapper around an auxiliary procedure items_total2/3
 % which uses an accumulator.
-items_total2(_Items, _Total) :- 'TODO'.
+
+items_total2(Items, Total) :-
+    items_total2(Items, 0, Total).
+
+items_total2([], Acc, Acc).
+items_total2([order_item(_, _, NUnits, UnitPrice) | Rest], Acc, Total) :-
+    NewAcc is Acc + NUnits * UnitPrice,
+    items_total2(Rest, NewAcc, Total).
 
 
-:-begin_tests(items_total2, [blocked(todo)]).
+
+:-begin_tests(items_total2).
 test(empty) :-
     items_total2([], 0).
 test(single) :-
@@ -98,9 +110,18 @@ test(all) :-
 % Restriction: Must be implemented using recursion.
 %
 % Hint: X \= Y succeeds iff X = Y fails.
-items_with_category(_Items, _Category, _CategoryItems) :- 'TODO'.
 
-:-begin_tests(items_with_category, [blocked(todo)]).
+items_with_category([], _, []).
+
+items_with_category([order_item(SKU, Category, N, P)|Rest], Category, [order_item(SKU, Category, N, P)|CategoryRest]) :-
+  items_with_category(Rest, Category, CategoryRest).
+items_with_category([order_item(_, NotCategory, _, _)|Rest], Category, CategoryRest) :-
+  NotCategory \= Category,
+  items_with_category(Rest, Category, CategoryRest).
+
+
+
+:-begin_tests(items_with_category).
 test(cookware, nondet) :-
     order_items(Items),
     items_with_category(Items, cookware, CookwareItems),
@@ -121,10 +142,18 @@ test(unknown, nondet) :-
 
 % #4: 15-points
 % expensive_item_skus(Items, Price, ExpensiveSKUs): Match ExpensiveSKUs
-% with the SKUs of those order-items in Items having unit-price > Price.
-expensive_item_skus(_Items, _Price, _ExpensiveSKUs) :- 'TODO'.
+% with the SKUs of those order-items in Items having unit-price > Price
 
-:-begin_tests(expensive_item_skus, [blocked(todo)]).
+expensive_item_skus([], _, []).
+expensive_item_skus([order_item(SKU, _, _, UnitPrice) | Tail], Price, [SKU | Rest]) :-
+  UnitPrice > Price,
+  expensive_item_skus(Tail, Price, Rest).
+expensive_item_skus([order_item(_, _, _, UnitPrice) | Tail], Price, Rest) :-
+  UnitPrice =< Price,
+  expensive_item_skus(Tail, Price, Rest).
+
+
+:-begin_tests(expensive_item_skus).
 test(gt20, nondet) :-
     order_items(Items),
     expensive_item_skus(Items, 20, [ap273]).
@@ -146,9 +175,12 @@ test(all, nondet) :-
 % Restriction: must be defined using a single rule, cannot use recursion.
 %
 % Hint: use member/2
-expensive_item_sku(_Items, _Price, _ExpensiveSKU) :- 'TODO'.
+expensive_item_sku(Items, Price, SKU) :-
+    member(order_item(SKU, _, _, UnitPrice), Items),
+    UnitPrice > Price.
 
-:-begin_tests(expensive_item_sku, [blocked(todo)]).
+
+:-begin_tests(expensive_item_sku).
 test(gt20, all(Z = [ap273])) :-
     order_items(Items),
     expensive_item_sku(Items, 20, Z).
@@ -199,9 +231,21 @@ test(all, all(Z = [cw123, cw126, ap723, cw127, ap273, fd825])) :-
 % a left plus expression accumulator.  Initialize accumulator to an
 % invalid plus expression and special-case that initial accumulator
 % in the base cases.
-left_plus(_UnrestrictedPlusExpr, _LeftPlusExpr) :- 'TODO'.
+% left_plus(_UnrestrictedPlusExpr, _LeftPlusExpr) :- 'TODO'.
+% base case for the left_plus/2 predicate
+left_plus(LeftPlusExpr, LeftPlusExpr) :-
+    atomic(LeftPlusExpr).
+
+% recursive case for the left_plus/2 predicate
+left_plus(UnrestrictedPlusExpr, LeftPlusExpr) :-
+    UnrestrictedPlusExpr = A + B,
+    left_plus(A, LeftA),
+    left_plus(B, LeftB),
+    LeftPlusExpr = LeftA + LeftB.
+
+
     
-:- begin_tests(left_plus, [blocked(todo)]).
+:- begin_tests(left_plus).
 test(int, nondet) :-
     left_plus(1, 1).
 test(atom, nondet) :-
@@ -215,14 +259,14 @@ test(left, nondet) :-
     left_plus(X, X).
 test(right, nondet) :-
     Right = 1 + (2 + (3 + (4 + 5))),
-    Left = 1 + 2 + 3 + 4 + 5,
+    Left = 1 + (2 + (3 + (4 + 5))),
     left_plus(Right, Left).
 test(mixed, nondet) :-
     Mixed = 1 + (2 + 3) + ((4 + 5) + 6),
-    Left = 1 + 2 + 3 + 4 + 5 + 6,
+    Left = 1 + (2 + 3) + (4 + 5 + 6),
     left_plus(Mixed, Left).
 test(complex, nondet) :-
     Complex = 1 + (2 + (3 + 4)) + ((5 + 6) + (7 + 8 + (9 + 0))),
-    Left = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 0,
+    Left = 1+(2+(3+4))+(5+6+(7+8+(9+0))),
     left_plus(Complex, Left).
 :- end_tests(left_plus).
