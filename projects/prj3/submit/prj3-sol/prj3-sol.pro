@@ -241,8 +241,6 @@ left_plus(UnrestrictedPlusExpr, _LeftPlusExpr) :-
     left_plus(A, _LeftA),
     left_plus(B, _LeftB).
 
-
-
     
 :- begin_tests(left_plus).
 test(int, nondet) :-
