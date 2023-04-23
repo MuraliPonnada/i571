@@ -183,7 +183,8 @@ type Binding = (VarName, Term)
 -- of each binding.
 -- Hint: use sortBy and compare
 sortBindings :: [Binding] -> [Binding]
-sortBindings _ = error "TODO"
+sortBindings = sortBy (compare `on` fst)
+  where on f g x y = f (g x) (g y)
 
 testSortBindings = do
   assertEq "empty" (sortBindings []) []
@@ -228,7 +229,10 @@ testSortBindings = do
 --        When term is a Struct, simply return the term resulting from
 --        applying substTerm over the arguments.
 substTerm :: Term -> [Binding] -> Term
-substTerm _ _ = error "TODO"
+substTerm (Var varName) bindings = case lookup varName bindings of
+  Just term -> term
+  Nothing -> Var varName
+substTerm (Struct atomName terms) bindings = Struct atomName (map (\term -> substTerm term bindings) terms)
 
 testSubstTerm =
   let bindings = [
@@ -258,7 +262,9 @@ testSubstTerm =
 -- (normalizeBindings binding) returns sorted bindings with each
 -- term in bindings replaced by (substTerm term bindings).
 normalizeBindings :: [Binding] -> [Binding]
-normalizeBindings _ = error "TODO"
+normalizeBindings bindings =
+  let subbedBindings = [(varName, substTerm term bindings) | (varName, term) <- bindings]
+  in sortBindings subbedBindings
 
 testNormalizeBindings =   
   let bindings = [
@@ -288,6 +294,7 @@ testNormalizeBindings =
 --        also prove useful.  Make sure your definition covers all
 --        possible cases for the two lists.
 --        Again, use case expressions to handle Maybe results.
+
 unify :: Term -> Term -> Maybe [Binding]
 unify _ _ = error "TODO"
 
