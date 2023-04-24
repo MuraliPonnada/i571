@@ -1,6 +1,7 @@
 import Unit  -- crude assertions for unit tests
 
 import Data.List
+import Data.Function (on)
 
 ----------------------------- OrderItem Type ----------------------------
 type Sku = String
@@ -184,7 +185,6 @@ type Binding = (VarName, Term)
 -- Hint: use sortBy and compare
 sortBindings :: [Binding] -> [Binding]
 sortBindings = sortBy (compare `on` fst)
-  where on f g x y = f (g x) (g y)
 
 testSortBindings = do
   assertEq "empty" (sortBindings []) []
@@ -229,10 +229,12 @@ testSortBindings = do
 --        When term is a Struct, simply return the term resulting from
 --        applying substTerm over the arguments.
 substTerm :: Term -> [Binding] -> Term
-substTerm (Var varName) bindings = case lookup varName bindings of
-  Just term -> term
-  Nothing -> Var varName
-substTerm (Struct atomName terms) bindings = Struct atomName (map (\term -> substTerm term bindings) terms)
+substTerm (Var varName) bindings = 
+  case lookup varName bindings of
+    Just bindingTerm -> substTerm bindingTerm bindings
+    Nothing          -> Var varName
+substTerm (Struct atomName terms) bindings = 
+  Struct atomName (map (\t -> substTerm t bindings) terms)
 
 testSubstTerm =
   let bindings = [
@@ -262,9 +264,9 @@ testSubstTerm =
 -- (normalizeBindings binding) returns sorted bindings with each
 -- term in bindings replaced by (substTerm term bindings).
 normalizeBindings :: [Binding] -> [Binding]
-normalizeBindings bindings =
-  let subbedBindings = [(varName, substTerm term bindings) | (varName, term) <- bindings]
-  in sortBindings subbedBindings
+normalizeBindings bindings = 
+  let substBindings = map (\(varName, term) -> (varName, substTerm term bindings)) bindings
+  in sortBindings substBindings
 
 testNormalizeBindings =   
   let bindings = [
@@ -296,7 +298,33 @@ testNormalizeBindings =
 --        Again, use case expressions to handle Maybe results.
 
 unify :: Term -> Term -> Maybe [Binding]
-unify _ _ = error "TODO"
+unify t1 t2 = unifyWithBindings t1 t2 []
+
+unifyWithBindings :: Term -> Term -> [Binding] -> Maybe [Binding]
+unifyWithBindings t1 t2 b = do
+  case (t1, t2) of
+    (Var x, Var y) -> if x == y
+                      then Just b
+                      else case lookup x b of
+                             Just t' -> unifyWithBindings t' (Var y) b
+                             Nothing -> Just $ normalizeBindings ((x, Var y) : b)
+    (Var x, t) -> case lookup x b of
+                    Just t' -> unifyWithBindings t' t b
+                    Nothing -> Just $ normalizeBindings ((x, t) : b)
+    (t, Var x) -> unifyWithBindings (Var x) t b
+    (Struct s1 ts1, Struct s2 ts2) -> if s1 == s2
+                                     then do
+                                       b' <- unifyTerms ts1 ts2 b
+                                       Just b'
+                                     else Nothing
+
+unifyTerms :: [Term] -> [Term] -> [Binding] -> Maybe [Binding]
+unifyTerms [] [] b = Just b
+unifyTerms (t1:ts1) (t2:ts2) b = do
+  b' <- unifyWithBindings t1 t2 b
+  unifyTerms ts1 ts2 b'
+unifyTerms _ _ _ = Nothing
+--unify _ _ = error "TODO"
 
 testUnify = do
   assertEq "unify: X = Y => [(X, Y)]"
